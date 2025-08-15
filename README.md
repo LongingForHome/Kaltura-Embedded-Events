@@ -1,22 +1,26 @@
 # 🎬 Kaltura Embedded Events
 A developer-focused guide to integrating __Kaltura Embedded Events__ into your own websites and applications.  
 This repository provides __reference guides, code samples, and visuals__ that illustrate the flows and components of building Kaltura Events functionality into your sites.
----
+
+
 ## 📌 Overview
 Kaltura provides a rich experience and feature set as part of their Events offering, supporting large scale live broadcasts, smaller panel-style or interactive webinars, and web-based broadcast studios.  There is also a robust set of interactions available to attendees including chat, Q&A, polls, rating scales, quizzes, word clouds, surveys, emoji reactions, and more.  On top of that Kaltura offers the flexibility to customize and control the experience with your own branding, theme controls, and/or full CSS.
 
 This guide will cover two main topics:
 * The creation of the various event types supported in Kaltura.  This can be done inside Kaltura applications, but also via API, which we will discuss.
 * The authentication of users and rendering of the embedded event iframe for your site/application
----
+
+
 ## 📋 Prerequisites
 * A Kaltura account with a KAFTestMe instance and all events features enabled.
   * The KAFTestMe offers a simple and flexible endpoint to allow the loading of the full session experience within a simple, easy to use iframe.
----  
+* An admin appToken for accessing the Kaltura API.
+
+
 ## 🚀 Getting Started
 There are a few concepts and terms we should understand before getting started:
-* __Webcast session__ - this is different from a regular live stream.  A Webcast entails a live entry, but also scheduling components for when the stream will start and end.  A Webcast is also treated differently than a regular live stream as it adds the capability of the Chat and Collaboration (CNC) component (for chat, Q&A, polls, etc, like mentioned above).  Finally, a Webcast also enables the ability to access the Webcast studio, allowing addition of slides and other storyboard components, as well as a mini monitoring console.  Webcast sessions are most commonly driven from a hardware or software encoder broadcasting RTMP(S) or SRT into Kaltura.  Attendees of these sessions watch the stream via the Kaltura video player.
-* __Interactive/Webinar session__ - this is basically a WebRTC meeting room, with two different modes.  
+* __Webcast session__ - this is different from a regular live stream.  A Webcast entails a live entry, but also scheduling components for when the stream will start and end.  A Webcast also enables the ability to access the Webcast studio, allowing addition of slides and other storyboard components, as well as a mini monitoring console.  Webcast sessions are most commonly driven from a hardware or software encoder broadcasting RTMP(S) or SRT into Kaltura.  Attendees of these sessions watch the stream via the Kaltura video player.
+* __Interactive/Webinar session__ - this is basically a WebRTC meeting room, with two different modes:  
   * In an Interactive session, everyone will join the room with cams/mics "on stage" so that everyone can interact with each other in real time.  These sessions are great for things like sponsor booths, demo rooms, interactive trainings, breakouts, virtual classrooms, and more.
   * In a Webinar session, it is the same room experience with the exception that only speakers and moderators can initially join the meeting with cam/mic "on stage" while all other attendees join in a listen mode (no cam/mic) "off stage" (however, they can still raise hand or request to join, and a moderator can allow them to activate cam/mic and join the stage).  These session types are better suited to presentation sessions where the presenters are delivering content to many but don't need it to be fully interactive with every attendee, while still having the flexibility to bring people on stage where they can be seen/heard.
 * __Webcast Studio session__ - this is a combination of the former two.  For speakers and moderators, there is a WebRTC meeting room with features such as a green room for stage management, storyboard for organizing a run-of-show, and other tools, allowing the creation of a customized, high production-level event.  The room then also has controls for allowing what is being produced in the room to then be broadcast out to a Webcast session, where attendees will be able to watch the session through the Kaltura video player.  This allows basically unlimited scale in the number of attendees that are able to join the session.
@@ -83,14 +87,10 @@ The general flow implemented by a vendor would follow this outline:
    - for any kind of error encountered, set the 'status' to 'ERROR', and use the 'errDescription' field to provide more details on the error.
    - use the 'externalTaskId' parameter to store any relevant task processing identifiers in your system.  This will help if we ever need to track a task back to you to troubleshoot or provide additional information.
  
-# Additional Information
-   - Kaltura operates a global SaaS, regional cloud, and on-prem instances.  You will need a service/process to run against each of these environments you wish to support.  For more information, see [API Endpoints](resources/API_Endpoints.md)
-   - If the accessKey provided in the original task object expires, you may utilize [entryVendorTask.extendAccessKey()](https://developer.kaltura.com/api-docs/service/entryVendorTask/action/extendAccessKey) to generate a new accessKey (ks) for the task.
-   - Tasks will include a deletion policy specifying how long a vendor should be allowed to maintain a copy of the media asset after processing before purging the asset.
-   - Tasks will also include a specified processing region, in the event the vendor supports processing content in multiple regions (ex: to support GDPR, etc).
-   - Job prioritization - the vendor should have a queueing mechanism that gives equal priority to all jobs, regardless of the customer that initiated the request.
-   - Kaltura and the Partner/Vendor will both perform joint QA on any REACH integration before it moves to Production.
-   - See [resources](resources) for more help. 
+## 🧩 Additional Information
+In this guide we discussed the programmatic creation of the various types of event sessions, and what it looks like to render those sessions within your own applications.  The assumption up to this point is that each session would have it's own 'landing page' within your application.  However, KAF has a bonus feature of an endpoint that would allow for an entire list/agenda of sessions to be shown in a single view.  This can be useful if you want to simplify your site and not have to maintain the landing page wrapper for every session separately.
+
+See [resources](resources) for more help. 
    
    
 
