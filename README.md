@@ -57,7 +57,7 @@ Creating any of the various session types will consist of multiple API calls.
 > * To create a Webcast session, we'll first need to make the [liveStream.add()](https://developer.kaltura.com/api-docs/service/liveStream/action/add) API call.  This will create the liveStream *entry* in Kaltura.  There are a number of attributes associated with a liveStream, but the most relevant ones are:
 >   * liveStreamEntry->dvrStatus : this can be ENABLED or DISABLED, depending on if you wish to support DVR for the session.
 >   * liveStreamEntry->dvrWindow : an integer value representing the number of minutes for the DVR window (only use if you are enabling DVR as well).
->   * liveStreamEntry->viewMode : ALLOW_ALL or PREVIEW.  Allow all means that the stream will be delivered to the player immediately upon the start of the encoder.  Preview enables a Kaltura producer or admin to Preview the stream in the backend before releasing it to the player for attendees to stream.
+>   * liveStreamEntry->viewMode : ALLOW_ALL or PREVIEW.  "ALLOW_ALL" means that the stream will be delivered to the player immediately upon the start of the encoder.  "PREVIEW" enables a Kaltura producer or admin to Preview the stream in the backend before releasing it to the player for attendees to view.
 >   * liveStreamEntry->mediaType : in most cases, this should be set to LIVE_STREAM_FLASH to support RTMP(S) ingest.
 >   * liveStreamEntry->sourceType : this should be set to LIVE_STREAM.
 >   * liveStreamEntry->adminTags : adminTags should be supplied as a comma separated string of tags.  For this scenario, we need "kms-webcast-event,kwebcast" , but these can also be used to associate any backend tagging (not visible to endusers) to help identify or classify your content, so you may add additional ones as needed.  NOTE: you may also consider using the liveStreamEntry->referenceId attribute to store external system ids for easier mapping.
@@ -82,14 +82,14 @@ Creating any of the various session types will consist of multiple API calls.
 >       * metadataProfileId = {INTEGER_PROFILE_ID_FROM_PREVIOUS_STEP}
 >       * objectType = KalturaMetadataObjectType::ENTRY
 >       * objectId = {ENTRY_ID_OF_LIVE_STREAM}
->       * xmlData = "<metadata><SlidesDocEntryId></SlidesDocEntryId><IsKwebcastEntry>1</IsKwebcastEntry><IsSelfServe>0</IsSelfServe></metadata>"
+>       * xmlData = "`<metadata><SlidesDocEntryId></SlidesDocEntryId><IsKwebcastEntry>1</IsKwebcastEntry><IsSelfServe>0</IsSelfServe></metadata>`"
 >       * metadata->add(metadataProfileId, objectType, objectId, xmlData) 
 >     * Repeat the metadataProfile.list() steps above to get the metadataProfile for "EventsProfile3".  This metadata is used to handle the session countdown timer on the session card prior to the session beginning.
 >     * Once you have the metadataProfile from the above request, then set the metadata.
 >       * metadataProfileId = {INTEGER_PROFILE_ID_FROM_PREVIOUS_STEP}
 >       * objectType = KalturaMetadataObjectType::ENTRY
 >       * objectId = {ENTRY_ID_OF_LIVE_STREAM}
->       * xmlData = "<metadata><StartTime>{EPOCH_TIMESTAMP_START_DATETIME}</StartTime><EndTime>{EPOCH_TIMESTAMP_END_DATETIME}</EndTime><Timezone>{TIMEZONE; ex:America/New_York}</Timezone></metadata>"
+>       * xmlData = "`<metadata><StartTime>{EPOCH_TIMESTAMP_START_DATETIME}</StartTime><EndTime>{EPOCH_TIMESTAMP_END_DATETIME}</EndTime><Timezone>{TIMEZONE; ex:America/New_York}</Timezone></metadata>`"
 >       * metadata->add(metadataProfileId, objectType, objectId, xmlData)
 >   * We also need to add a *scheduleEvent* wrapper for the liveStream using the *[scheduleEvent.add() method](https://developer.kaltura.com/api-docs/service/scheduleEvent/action/add)*.  The relevant attributes are:
 >     * scheduleEvent : the scheduleEvent object type should be a KalturaLiveStreamScheduleEvent
