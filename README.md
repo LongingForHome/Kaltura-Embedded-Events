@@ -38,7 +38,7 @@ All of these session types still allow everyone to participate in the Chat and C
 
 * 🧩 ***Entries, categories, and scheduleEvents*** - entries, categories, and scheduleEvents are Kaltura API objects.  
 An *[entry](https://developer.kaltura.com/api-docs/service/baseEntry)* is an archetype.  Various *entry* implementations include live streams, rooms, and media.  We'll be using all three of these in this guide. 
-A *[category](https://developer.kaltura.com/api-docs/service/category)* is used as an organizational concept allowing you to associate multiple entries together.  Categories can also be used to enforce permissions, or entitlements, to govern access to entries.  In Kaltura applications, categories are commonly surfaced as Channels.  In this guide, we'll use categories to organize sessions into events, or tracks. 
+A *[category](https://developer.kaltura.com/api-docs/service/category)* is used as an organizational concept allowing you to associate multiple entries together.  Categories can also be used to enforce permissions, or entitlements, to govern access to entries.  In Kaltura applications, categories are commonly surfaced as Channels.  In this guide, we'll use categories to organize sessions into events, or tracks, and to allow access to the session page for attendees. 
 A *[scheduleEvent](https://developer.kaltura.com/api-docs/service/scheduleEvent)* is a type of wrapper for an entry that allows specifying additional attributes like startDate, endDate, organizer, and others. 
 
 ## 🚀 Getting Started
@@ -110,18 +110,49 @@ Creating any of the various session types will consist of multiple API calls.
     
 #### 📸***Interactive/Webinar session***
 
-- coming soon :) 
+>Flow overview:
+> - more coming soon :) 
 
 #### 🎥***Webcast Studio session***
 
-- coming soon :)
+>Flow overview:
+> - more coming soon :)
 
 #### 📼***Simulive, or Pre-recorded, session***
 
-- coming soon :)
+>Flow overview:
+> - more coming soon :)
 
 ### 2️⃣ KAF Embed Rendering
 
+This section will cover how to render the iframe for the session content + interactivity features.  A key component of this is to generate a valid Kaltura session (KS) that can be appended to a certain KAF endpoint to authenticate the user and load the page.  Let's look at both parts:
+* Regarding the KAF endpoint, the KAF instance url (later referred to as `{KAF_BASE_URL}`) should be provisioned and provided by Kaltura (unless you are programmatically provisioning these.  If so, there is *another guide* that details that process).  The KAF base url should be defined within your application.  KAF has multiple endpoints, but for this scenario, we'll be leveraging the *view-entry* endpoint, which allows for loading the session + interactivity features in an iframe. The syntax for the url construction will be as follows:
+  * https://`{KAF_BASE_URL}`/hosted/index/view-entry/ks/`{GENERATED_USER_KS}` where `{KAF_BASE_URL}` is your static KAF instance and `/hosted/index/view-entry` is the path to the view-entry endpoint.
+* Now, for generating the needed `{GENERATED_USER_KS}` to append to the view-entry endpoint, there are some needed attributes for the user to ensure proper provisioning.  We'll assume you are already familiar with using appTokens to authenticate and create Kaltura API sessions.  If not, see the reference pages at the beginning of this guide before moving on.  Let's take a look at the needed attributes when using *[appToken.startSession()](https://developer.kaltura.com/api-docs/service/appToken/action/startSession)* to generate the KS for the user (we will forego the id and tokenHash attributes here as those are covered in other guides.  See https://developer.kaltura.com/api-docs/VPaaS-API-Getting-Started/application-tokens.html for more details):
+  * expiry : this is the time in seconds that the generated session should be valid for.  The default value is 86400, or 24 hours.  Set as needed.
+  * sessionPrivileges : this is the most important part. There are some mandatory params, and some optional.  An example `sessionPrivileges` string is `actionslimit:-1,userId:{session_attendee_userid},entryId:{session_entry_id},firstName:Session,lastName:Attendee,email,locale:en,role:viewerRole` .  Let's look at each one:
+    * actionslimit : REQUIRED. This allows setting a limit to the number of API calls the session is able to make.  We'll use -1 here to indicate no limit.
+    * userId : REQUIRED. this can be any value you wish to associate the user to a record for the purpose of governing access and tracking analytics.  In many cases, it may make the most sense to just use the same user identifier you use in your external system so that it's easier to merge analytics from both platforms.
+    * entryId : REQUIRED.  This should be the id of the entry that you created above (Webcast,Interactive/Webinar,Studio,Simulive).
+    * firstName : OPTIONAL, but suggested.  This will be the first name of the user that shows up when leveraging chat, Q&A, etc.
+    * lastName : OPTIONAL, but suggested.  This will be the last name of the user that shows up when leveraging chat, Q&A, etc.
+    * email : OPTIONAL.  This will help further identify the user and enhance analytics.
+    * locale : OPTIONAL.  This should be a valid [BCP 47 language tag](https://developer.mozilla.org/en-US/docs/Glossary/BCP_47_language_tag).  The default value is 'en'.  Use this to support internationalization and render the UI in one of the supported languages (verify with your Kaltura representative which UI languages your KAF instance supports). 
+    * role : REQUIRED.  For attendees, this should be set to 'viewerRole'.  For other use cases, you could choose to use 'privateOnlyRole', 'adminRole', or 'unmoderatedAdminRole'.
+  * type : for attendees, use the `USER` type.
+  * userId : this is the userId of the user the KS should be assigned to (use the same value as the userId attribute in the sessionPrivileges above).
+Using that, you should be able to generate a KS that will be appended to the KAF endpoint.  An example KS would look like: `djJ8MjczMNT0MXwT-iY6kmVwmp7kQ0twteuZkZhSA2dpqtNG6_Yd62vhmhiX64Lr09TdrrzusKu0TPSP0KB0tkLx8h_QP2dyTn_e7EmjYAnERXm0q4iQOBu6izXWvwHbeZGXVcnuoOb6tZa660xlH4Cy3_6MTJRGRZiDDuQ3_RBsSMB5Y-fiQRmOuuPcKCWvAhmfqQbwFq9ZSwGSK9yaRj8Ult47IXJkYWoly1cijjI1jp9tvZ0vEZXQmrisLLoPjyaT0RSphpPgqIA=`
+
+* Now that you have your KAF endpoint and user KS we can concatenate them to form the url you need to supply as the `src` of your iframe to embed within your application.  The url should follow this syntax: **https://`{KAF_BASE_URL}`/hosted/index/view-entry/ks/`{GENERATED_USER_KS}`**.  Assign other iframe attributes (allowfullscreen, width, height, name, style, etc) as needed for your application.
+
+Before the session start time, the rendered iframe will look like this:
+![Render of embedded session before the session start time](resources/PreLiveEmbeddedWebcast.jpg)
+
+During the session, the rendered iframe will vary slightly based on the session type we are loading.
+* For Webcast or Simulive sessions, the Kaltura player will render:
+![Render of embedded Webcast or Simulive session while it is live](resources/LiveEmbeddedWebcast.jpg)
+* For Studio or Interactive/Webinar sessions, the Kaltura Room will render:
+![Render of embedded Studio/Interactive/Webinar session while it is live](resources/LiveEmbeddedRoom.jpg)
 
 
 ## 🎁 Bonus Information
