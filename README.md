@@ -71,7 +71,7 @@ Creating any of the various session types will consist of multiple API calls.
 >   * liveStreamEntry->recordingOptions : options that allow further specification of how recordings should be handled.  Ex: liveStreamEntry->recordingOptions->shouldCopyThumbnail allows specifying if the recording should inherit the thumbnail of the live entry.
 > * Add a thumbnail for the session by using either [a hosted file](https://developer.kaltura.com/api-docs/service/liveStream/action/updateOfflineThumbnailFromUrl) or [uploading one](https://developer.kaltura.com/api-docs/service/liveStream/action/updateOfflineThumbnailJpeg).
 > * Now that we have the liveStream *entry*, we need to take a couple extra steps to ensure we define it as a Webcast session:
->   * We need to add a couple of metadata values to the liveStream to classify it as a Webcast.  There are many possible metadata schemas in Kaltura, so we need to look up the appropriate ones for this.  We can do so using the *[metadataProfile.list()](https://developer.kaltura.com/api-docs/service/metadataProfile/action/list) API* to find them and then use the *[metadata.add()](https://developer.kaltura.com/api-docs/service/metadata/action/add) API* to set the metadata values for the *entry*.
+>   * We need to add a few metadata values to the liveStream to classify it as a Webcast and set some settings.  There are many possible metadata schemas in Kaltura, so we need to look up the appropriate ones for this.  We can do so using the *[metadataProfile.list()](https://developer.kaltura.com/api-docs/service/metadataProfile/action/list) API* to find them and then use the *[metadata.add()](https://developer.kaltura.com/api-docs/service/metadata/action/add) API* to set the metadata values for the *entry*.
 >     * Find the metadataProfile for "KwebcastProfile":
 >       * filter = new KalturaMetadataProfileFilter()
 >       * filter->metadataObjectTypeEqual = KalturaMetadataObjectType::ENTRY
@@ -90,6 +90,19 @@ Creating any of the various session types will consist of multiple API calls.
 >       * objectType = KalturaMetadataObjectType::ENTRY
 >       * objectId = {ENTRY_ID_OF_LIVE_STREAM}
 >       * xmlData = "`<metadata><StartTime>{EPOCH_TIMESTAMP_START_DATETIME}</StartTime><EndTime>{EPOCH_TIMESTAMP_END_DATETIME}</EndTime><Timezone>{TIMEZONE; ex:America/New_York}</Timezone></metadata>`"
+>       * metadata->add(metadataProfileId, objectType, objectId, xmlData)
+>     * Repeat the metadataProfile.list() steps above to get the metadataProfile for "Entry Additional Info".  This metadata is used to handle the configuration for calendar reminder funcationality as well as the settings for chat and Q&A.
+>     * Once you have the metadataProfile from the above request, then set the metadata.
+>       * metadataProfileId = {INTEGER_PROFILE_ID_FROM_PREVIOUS_STEP}
+>       * objectType = KalturaMetadataObjectType::ENTRY
+>       * objectId = {ENTRY_ID_OF_LIVE_STREAM}
+>       * xmlData = "`<metadata><Key/><Value/><Detail><Key>calenderReminder</Key><Value>\"{CALENDAR_REMINDER_SETTING}\"</Value></Detail><Detail><Key>cnc_widgetSettings</Key><Value>{\"cnc_enabled\":\"1\",\"cnc_moderation\":{INT_VALUE_FOR_Q&A_SETTING},\"cnc_groupChat_mode\":\"{STRING_VALUE_FOR_CHAT_MODE}\"}</Value></Detail></metadata>`"
+>         * There are multiple options for these settings, so let's unpack those:
+>           * calenderReminder : 'none' for no calendar reminder, or one of the following - '5minutes','15minutes','30minutes','45minutes','1hour','2hours','3hours','4hours','1day','2days','3days','1week','2weeks'.  For embedded events, we suggest using 'none' so that user's won't get direct Kaltura links in the calendar that bypass your platform.
+>           * cnc_enabled : always use 1 to ensure the chat and interactivity features are enabled
+>           * cnc_moderation : this controls the Q&A function.  Supported values are `0` for disabled, `1` for enabled, or `2` for enabled according to schedule
+>             * when using `2` to follow the session schedule, you also need to include cnc_moderation_preBroadcast and cnc_moderation_postBroadcast keys to define how long before and after the schedule the Q&A should be available. These values should be supplied as integer representation of the number of minutes for each setting.  Example full xml when setting Q&A to follow schedule and open 10 minutes prior to the session and close 10 minutes after: `<metadata><Key/><Value/><Detail><Key>calenderReminder</Key><Value>\"none\"</Value></Detail><Detail><Key>cnc_widgetSettings</Key><Value>{\"cnc_enabled\":\"1\",\"cnc_moderation\":2,\"cnc_groupChat_mode\":\"schedule\",\"cnc_moderation_preBroadcast\":\"10\",\"cnc_moderation_postBroadcast\":\"10\"}</Value></Detail></metadata>`
+>           * cnc_groupChat_mode : this controls if and when the group chat functionality should be enabled.  Supported values are `disabled`,`groupChat`(enabled and always on), or `schedule` (on, but only available according to the session schedule)
 >       * metadata->add(metadataProfileId, objectType, objectId, xmlData)
 >   * We also need to add a *scheduleEvent* wrapper for the liveStream using the *[scheduleEvent.add() method](https://developer.kaltura.com/api-docs/service/scheduleEvent/action/add)*.  The relevant attributes are:
 >     * scheduleEvent : the scheduleEvent object type should be a KalturaLiveStreamScheduleEvent
